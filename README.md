@@ -280,4 +280,5 @@ Educational project for Computer Networks course.
 
 ## Authors
 
-Sahil Narkhede - SEM6 Computer Networks Project
+Sahil Narkhede 
+Anshit Agarwal
