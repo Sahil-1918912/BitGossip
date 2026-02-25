@@ -7,23 +7,33 @@ echo "BitGossip Network Test Suite"
 echo "========================================="
 echo ""
 
+# Compile programs
+echo "1. Compiling programs..."
+make all
+
+if [ $? -ne 0 ]; then
+    echo "Compilation failed!"
+    exit 1
+fi
+
 # Clean previous outputs
-echo "1. Cleaning previous outputs..."
+echo ""
+echo "2. Cleaning previous outputs..."
 ./clean_output.sh
 sleep 1
 
 # Start seed nodes
 echo ""
-echo "2. Starting seed nodes..."
-python3 seed.py 5001 > /dev/null 2>&1 &
+echo "3. Starting seed nodes..."
+./seed 5001 > /dev/null 2>&1 &
 SEED1_PID=$!
 sleep 0.5
 
-python3 seed.py 5002 > /dev/null 2>&1 &
+./seed 5002 > /dev/null 2>&1 &
 SEED2_PID=$!
 sleep 0.5
 
-python3 seed.py 5003 > /dev/null 2>&1 &
+./seed 5003 > /dev/null 2>&1 &
 SEED3_PID=$!
 sleep 1
 
@@ -31,24 +41,24 @@ echo "   Seed nodes started (PIDs: $SEED1_PID, $SEED2_PID, $SEED3_PID)"
 
 # Start peer nodes
 echo ""
-echo "3. Starting peer nodes..."
-python3 peer.py 6001 > /dev/null 2>&1 &
+echo "4. Starting peer nodes..."
+./peer 6001 > /dev/null 2>&1 &
 PEER1_PID=$!
 sleep 1
 
-python3 peer.py 6002 > /dev/null 2>&1 &
+./peer 6002 > /dev/null 2>&1 &
 PEER2_PID=$!
 sleep 1
 
-python3 peer.py 6003 > /dev/null 2>&1 &
+./peer 6003 > /dev/null 2>&1 &
 PEER3_PID=$!
 sleep 1
 
-python3 peer.py 6004 > /dev/null 2>&1 &
+./peer 6004 > /dev/null 2>&1 &
 PEER4_PID=$!
 sleep 1
 
-python3 peer.py 6005 > /dev/null 2>&1 &
+./peer 6005 > /dev/null 2>&1 &
 PEER5_PID=$!
 sleep 2
 
@@ -56,18 +66,18 @@ echo "   Peer nodes started (5 peers)"
 
 # Wait for network to stabilize
 echo ""
-echo "4. Waiting for network to stabilize (10 seconds)..."
+echo "5. Waiting for network to stabilize (10 seconds)..."
 sleep 10
 
 # Check registration consensus
 echo ""
-echo "5. Checking registration consensus..."
+echo "6. Checking registration consensus..."
 CONSENSUS_COUNT=$(grep -c "CONSENSUS REACHED.*registered" output/seed_*.txt 2>/dev/null || echo "0")
 echo "   Peers successfully registered: $CONSENSUS_COUNT"
 
 # Check peer connections
 echo ""
-echo "6. Checking peer connections..."
+echo "7. Checking peer connections..."
 for port in 6001 6002 6003 6004 6005; do
     if [ -f "output/peer_${port}.txt" ]; then
         NEIGHBORS=$(grep -c "Connected to peer" output/peer_${port}.txt 2>/dev/null || echo "0")
@@ -77,12 +87,12 @@ done
 
 # Wait for gossip messages
 echo ""
-echo "7. Waiting for gossip message generation (30 seconds)..."
+echo "8. Waiting for gossip message generation (30 seconds)..."
 sleep 30
 
 # Check gossip propagation
 echo ""
-echo "8. Checking gossip message propagation..."
+echo "9. Checking gossip message propagation..."
 for port in 6001 6002 6003 6004 6005; do
     if [ -f "output/peer_${port}.txt" ]; then
         GENERATED=$(grep -c "GOSSIP GENERATED" output/peer_${port}.txt 2>/dev/null || echo "0")
@@ -93,9 +103,9 @@ done
 
 # Test dead node detection
 echo ""
-echo "9. Testing dead node detection..."
+echo "10. Testing dead node detection..."
 echo "   Killing peer 6003 (PID: $PEER3_PID)..."
-kill $PEER3_PID 2>/dev/null
+kill -9 $PEER3_PID 2>/dev/null
 sleep 15
 
 # Check suspicion reports

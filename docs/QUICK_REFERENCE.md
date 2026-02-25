@@ -5,23 +5,22 @@
 ### Starting the Network
 ```bash
 # Start all seeds
-./start_seeds.sh
+scripts/start_seeds.sh
+# Or: make run_seeds
 
 # Start all peers
-./start_peers.sh
+scripts/start_peers.sh
+# Or: make run_peers
 
 # OR: Start individual nodes
-python3 seed.py <port>
-python3 peer.py <port>
+./seed <port>
+./peer <port>
 ```
 
 ### Monitoring
 ```bash
 # Real-time monitoring (color-coded)
-./monitor_logs.sh
-
-# Analyze network statistics
-./analyze_network.py
+scripts/monitor_logs.sh
 
 # Watch specific node
 tail -f output/peer_6001.txt
@@ -30,19 +29,22 @@ tail -f output/peer_6001.txt
 ### Testing
 ```bash
 # Run comprehensive test
-./test_network.sh
+scripts/test_network.sh
+# Or: make test
 
 # Manual dead node test
-pkill -f "python3 peer.py 6003"
+pkill -9 peer
 ```
 
 ### Cleanup
 ```bash
 # Stop all nodes
-./stop_all.sh
+scripts/stop_all.sh
+# Or: make stop
 
 # Clean log files
-./clean_output.sh
+scripts/clean_output.sh
+# Or: make clean_output
 ```
 
 ## Log Message Types
@@ -90,7 +92,8 @@ pkill -f "python3 peer.py 6003"
 ```bash
 lsof -ti:<port> | xargs kill -9
 # OR
-./stop_all.sh
+scripts/stop_all.sh
+# OR: make stop
 ```
 
 ### Peers not connecting

@@ -1,0 +1,12 @@
+[2026-02-25 18:43:19.136] Loaded 3 seeds, quorum: 2
+[2026-02-25 18:43:19.136] Seed running at 127.0.0.1:5002 (Quorum: 2/3)
+[2026-02-25 18:43:27.425] Received registration vote request for 127.0.0.1:6001 (proposed by seed 5001)
+[2026-02-25 18:43:27.426] Received registration vote request for 127.0.0.1:6001 (proposed by seed 5003)
+[2026-02-25 18:43:28.427] Received registration vote request for 127.0.0.1:6002 (proposed by seed 5001)
+[2026-02-25 18:43:28.428] Received registration vote request for 127.0.0.1:6002 (proposed by seed 5003)
+[2026-02-25 18:43:29.429] Received registration vote request for 127.0.0.1:6003 (proposed by seed 5003)
+[2026-02-25 18:43:29.430] Received registration vote request for 127.0.0.1:6003 (proposed by seed 5001)
+[2026-02-25 18:43:30.431] Received registration vote request for 127.0.0.1:6004 (proposed by seed 5001)
+[2026-02-25 18:43:30.432] Received registration vote request for 127.0.0.1:6004 (proposed by seed 5003)
+[2026-02-25 18:43:31.434] Received registration vote request for 127.0.0.1:6005 (proposed by seed 5003)
+[2026-02-25 18:43:31.435] Received registration vote request for 127.0.0.1:6005 (proposed by seed 5001)

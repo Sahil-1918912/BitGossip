@@ -4,7 +4,7 @@
 
 echo "Stopping all nodes..."
 
-pkill -f "python3 seed.py"
-pkill -f "python3 peer.py"
+pkill -9 seed
+pkill -9 peer
 
 echo "All nodes stopped!"

@@ -1,0 +1,27 @@
+[2026-02-25 18:43:19.638] Loaded 3 seeds, quorum: 2
+[2026-02-25 18:43:19.638] Seed running at 127.0.0.1:5003 (Quorum: 2/3)
+[2026-02-25 18:43:27.425] Received registration vote request for 127.0.0.1:6001 (proposed by seed 5001)
+[2026-02-25 18:43:27.426] Registration request from 127.0.0.1:6001
+[2026-02-25 18:43:27.426] Proposing registration for peer 127.0.0.1:6001
+[2026-02-25 18:43:27.427] CONSENSUS REACHED: Peer 127.0.0.1:6001 registered (3/3 votes)
+[2026-02-25 18:43:27.427] Sending peer list - 1 peers
+[2026-02-25 18:43:28.427] Received registration vote request for 127.0.0.1:6002 (proposed by seed 5001)
+[2026-02-25 18:43:28.428] Registration request from 127.0.0.1:6002
+[2026-02-25 18:43:28.428] Proposing registration for peer 127.0.0.1:6002
+[2026-02-25 18:43:28.428] CONSENSUS REACHED: Peer 127.0.0.1:6002 registered (3/3 votes)
+[2026-02-25 18:43:28.429] Sending peer list - 2 peers
+[2026-02-25 18:43:29.428] Registration request from 127.0.0.1:6003
+[2026-02-25 18:43:29.428] Proposing registration for peer 127.0.0.1:6003
+[2026-02-25 18:43:29.429] CONSENSUS REACHED: Peer 127.0.0.1:6003 registered (3/3 votes)
+[2026-02-25 18:43:29.430] Received registration vote request for 127.0.0.1:6003 (proposed by seed 5001)
+[2026-02-25 18:43:29.430] Sending peer list - 3 peers
+[2026-02-25 18:43:30.431] Received registration vote request for 127.0.0.1:6004 (proposed by seed 5001)
+[2026-02-25 18:43:30.432] Registration request from 127.0.0.1:6004
+[2026-02-25 18:43:30.432] Proposing registration for peer 127.0.0.1:6004
+[2026-02-25 18:43:30.432] CONSENSUS REACHED: Peer 127.0.0.1:6004 registered (3/3 votes)
+[2026-02-25 18:43:30.433] Sending peer list - 4 peers
+[2026-02-25 18:43:31.433] Registration request from 127.0.0.1:6005
+[2026-02-25 18:43:31.433] Proposing registration for peer 127.0.0.1:6005
+[2026-02-25 18:43:31.434] CONSENSUS REACHED: Peer 127.0.0.1:6005 registered (3/3 votes)
+[2026-02-25 18:43:31.435] Received registration vote request for 127.0.0.1:6005 (proposed by seed 5001)
+[2026-02-25 18:43:31.436] Sending peer list - 5 peers
