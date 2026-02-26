@@ -2,7 +2,7 @@
 
 A robust peer-to-peer network implementation in **C** featuring gossip-based message dissemination, consensus-driven membership management, and two-level liveness detection with POSIX threads and socket programming.
 
-> **Language:** C (C11 standard)  
+> **Language:** C   
 > **Threading:** POSIX threads (pthreads)  
 > **Networking:** BSD sockets (TCP)  
 > **Build:** GNU Make
@@ -197,7 +197,7 @@ Start individual nodes:
 ./peer <port>    # Example: ./peer 6001
 ```
 
-**⚠️ Important:** Seeds must be running before starting peers!
+** Important:** Seeds must be running before starting peers!
 
 ---
 
@@ -489,32 +489,6 @@ As per assignment requirements:
 5. **output/peer_<port>.txt** - Peer output files
 6. **Makefile** - Build configuration
 
-## Project Structure
-
-```
-BitGossip/
-├── src/
-│   ├── seed.c           # Seed node implementation (16 KB)
-│   └── peer.c           # Peer node implementation (28 KB)
-├── scripts/
-│   ├── start_seeds.sh   # Start all seed nodes
-│   ├── start_peers.sh   # Start all peer nodes
-│   ├── stop_all.sh      # Stop all nodes
-│   ├── clean_output.sh  # Clean log files
-│   ├── test_network.sh  # Automated test script
-│   └── monitor_logs.sh  # Real-time log monitoring
-├── docs/
-│   ├── ARCHITECTURE.md  # System architecture and design
-│   ├── QUICK_START.md   # Quick start guide
-│   └── QUICK_REFERENCE.md # Command reference
-├── output/              # Log files directory
-├── seed                 # Compiled seed executable (generated)
-├── peer                 # Compiled peer executable (generated)
-├── Makefile             # Build configuration
-├── config.txt           # Seed node configuration
-└── README.md            # This file
-```
-
 ## Documentation
 
 - **README.md** (this file) - Complete implementation guide
@@ -530,8 +504,9 @@ BitGossip/
 
 ## Authors
 
-Sahil Narkhede
-Anshit Agarwal 
+Sahil Narkhede (B23CS1060)
+
+Anshit Agarwal (B23CS1087)
 
 ## License
 
