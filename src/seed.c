@@ -11,11 +11,13 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+// Core limits and networking constants
 #define MAX_PEERS 100
 #define MAX_SEEDS 10
 #define MAX_BUFFER 4096
 #define SEED_IP "127.0.0.1"
 
+// Basic node endpoint
 typedef struct {
     char ip[16];
     int port;
@@ -39,7 +41,7 @@ typedef struct {
     pthread_mutex_t lock;
 } VoteList;
 
-// Global variables
+// Global shared state
 PeerList peer_list = {.count = 0};
 VoteList registration_votes = {.count = 0};
 VoteList removal_votes = {.count = 0};
@@ -49,7 +51,7 @@ int quorum = 0;
 int seed_port = 0;
 FILE *log_file = NULL;
 
-// Function prototypes
+// Function declarations
 void load_seeds();
 void log_msg(const char *msg);
 void *handle_client(void *arg);
@@ -63,6 +65,7 @@ int add_peer(const char *ip, int port);
 void remove_peer(const char *ip, int port);
 VoteRecord* find_vote_record(VoteList *list, const char *peer_id);
 
+// Build timestamp string with millisecond precision
 void get_timestamp(char *buffer) {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
@@ -75,6 +78,7 @@ void get_timestamp(char *buffer) {
              t->tm_hour, t->tm_min, t->tm_sec, millisec);
 }
 
+// Write logs to stdout and file
 void log_msg(const char *msg) {
     char timestamp[64];
     get_timestamp(timestamp);
@@ -88,6 +92,7 @@ void log_msg(const char *msg) {
     }
 }
 
+// Load seed list from config and compute quorum
 void load_seeds() {
     FILE *f = fopen("config.txt", "r");
     if (!f) {
@@ -114,6 +119,7 @@ void load_seeds() {
     log_msg(msg);
 }
 
+// Check if peer is already in membership list
 int find_peer(const char *ip, int port) {
     pthread_mutex_lock(&peer_list.lock);
     for (int i = 0; i < peer_list.count; i++) {
@@ -127,6 +133,7 @@ int find_peer(const char *ip, int port) {
     return 0;
 }
 
+// Add peer to membership list
 int add_peer(const char *ip, int port) {
     pthread_mutex_lock(&peer_list.lock);
     if (peer_list.count < MAX_PEERS) {
@@ -140,6 +147,7 @@ int add_peer(const char *ip, int port) {
     return 0;
 }
 
+// Remove peer from membership list
 void remove_peer(const char *ip, int port) {
     pthread_mutex_lock(&peer_list.lock);
     for (int i = 0; i < peer_list.count; i++) {
@@ -156,6 +164,7 @@ void remove_peer(const char *ip, int port) {
     pthread_mutex_unlock(&peer_list.lock);
 }
 
+// Lookup vote record by peer id
 VoteRecord* find_vote_record(VoteList *list, const char *peer_id) {
     for (int i = 0; i < list->count; i++) {
         if (strcmp(list->records[i].peer_id, peer_id) == 0) {
@@ -165,6 +174,7 @@ VoteRecord* find_vote_record(VoteList *list, const char *peer_id) {
     return NULL;
 }
 
+// Send one request to another seed over TCP
 int send_to_seed(const char *ip, int port, const char *message, char *response) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) return 0;
@@ -195,6 +205,7 @@ int send_to_seed(const char *ip, int port, const char *message, char *response) 
     return 0;
 }
 
+// Start registration consensus across seeds
 int propose_registration(const char *peer_ip, int peer_port) {
     char peer_id[32];
     snprintf(peer_id, sizeof(peer_id), "%s:%d", peer_ip, peer_port);
@@ -237,6 +248,7 @@ int propose_registration(const char *peer_ip, int peer_port) {
     }
 }
 
+// Start removal consensus across seeds
 int propose_removal(const char *dead_ip, int dead_port, const char *reporter_ip) {
     char peer_id[32];
     snprintf(peer_id, sizeof(peer_id), "%s:%d", dead_ip, dead_port);
@@ -280,6 +292,7 @@ int propose_removal(const char *dead_ip, int dead_port, const char *reporter_ip)
     }
 }
 
+// Handle one incoming client request
 void *handle_client(void *arg) {
     int client_sock = *(int*)arg;
     free(arg);
@@ -291,6 +304,7 @@ void *handle_client(void *arg) {
         buffer[n] = '\0';
         char msg[512];
         
+        // Peer asks to register
         if (strncmp(buffer, "REGISTER:", 9) == 0) {
             char ip[16];
             int port;
@@ -307,6 +321,7 @@ void *handle_client(void *arg) {
                 send(client_sock, "REGISTRATION_PENDING", 20, 0);
             }
             
+        // Peer asks for membership list
         } else if (strncmp(buffer, "GET_PEERS", 9) == 0) {
             char response[MAX_BUFFER] = "[";
             pthread_mutex_lock(&peer_list.lock);
@@ -326,6 +341,7 @@ void *handle_client(void *arg) {
             pthread_mutex_unlock(&peer_list.lock);
             send(client_sock, response, strlen(response), 0);
             
+        // Another seed asks for registration vote
         } else if (strncmp(buffer, "VOTE_REGISTER:", 14) == 0) {
             char peer_ip[16];
             int peer_port, proposer_port;
@@ -341,6 +357,7 @@ void *handle_client(void *arg) {
             
             send(client_sock, "VOTE_YES", 8, 0);
             
+        // Another seed asks for removal vote
         } else if (strncmp(buffer, "VOTE_REMOVE:", 12) == 0) {
             char peer_ip[16];
             int peer_port, proposer_port;
@@ -356,6 +373,7 @@ void *handle_client(void *arg) {
             
             send(client_sock, "VOTE_YES", 8, 0);
             
+        // Peer reports a dead node
         } else if (strncmp(buffer, "Dead Node:", 10) == 0) {
             char dead_ip[16], reporter_ip[16];
             int dead_port;
@@ -374,6 +392,7 @@ void *handle_client(void *arg) {
     return NULL;
 }
 
+// Initialize server socket and accept connections forever
 void start_server() {
     pthread_mutex_init(&peer_list.lock, NULL);
     pthread_mutex_init(&registration_votes.lock, NULL);
@@ -424,6 +443,7 @@ void start_server() {
     }
 }
 
+// Entry point: setup logging, load config, start seed server
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <port>\n", argv[0]);

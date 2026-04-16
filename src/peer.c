@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <math.h>
 
+// Core limits and protocol timing
 #define MAX_PEERS 100
 #define MAX_SEEDS 10
 #define MAX_NEIGHBORS 20
@@ -22,6 +23,7 @@
 #define LIVENESS_INTERVAL 3
 #define SUSPICION_THRESHOLD 3
 
+// Basic node endpoint
 typedef struct {
     char ip[16];
     int port;
@@ -44,7 +46,7 @@ typedef struct {
     int reporter_count;
 } DeadReport;
 
-// Global variables
+// Global shared state
 char peer_ip[16] = "127.0.0.1";
 int peer_port = 0;
 
@@ -78,7 +80,7 @@ int message_counter = 0;
 int running = 1;
 FILE *log_file = NULL;
 
-// Function prototypes
+// Function declarations
 void log_msg(const char *msg);
 void get_timestamp(char *buffer);
 void load_seeds();
@@ -101,6 +103,7 @@ void sha256_string(const char *str, char *output);
 int find_neighbor_index(const char *ip, int port);
 int connect_to_peer(const char *ip, int port);
 
+// Build timestamp string with millisecond precision
 void get_timestamp(char *buffer) {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
@@ -113,6 +116,7 @@ void get_timestamp(char *buffer) {
              t->tm_hour, t->tm_min, t->tm_sec, millisec);
 }
 
+// Write logs to stdout and file
 void log_msg(const char *msg) {
     char timestamp[64];
     get_timestamp(timestamp);
@@ -126,6 +130,7 @@ void log_msg(const char *msg) {
     }
 }
 
+// Simple message hash for gossip de-duplication
 void sha256_string(const char *str, char *output) {
     // Simple hash implementation (not cryptographic)
     unsigned long hash = 5381;
@@ -138,6 +143,7 @@ void sha256_string(const char *str, char *output) {
     snprintf(output, 65, "%016lx", hash);
 }
 
+// Load seed list from config and compute quorum
 void load_seeds() {
     FILE *f = fopen("config.txt", "r");
     if (!f) {
@@ -164,6 +170,7 @@ void load_seeds() {
     log_msg(msg);
 }
 
+// Send one request to a seed over TCP
 int send_to_seed(const char *ip, int port, const char *message, char *response) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) return 0;
@@ -194,6 +201,7 @@ int send_to_seed(const char *ip, int port, const char *message, char *response) 
     return 0;
 }
 
+// Register with seeds until quorum acknowledgments are received
 int register_with_seeds() {
     // Shuffle seeds for random selection
     for (int i = seed_count - 1; i > 0; i--) {
@@ -238,6 +246,7 @@ int register_with_seeds() {
     }
 }
 
+// Fetch and merge peer lists from registered seeds
 int get_peer_lists(Node *all_peers) {
     int total_peers = 0;
     
@@ -287,6 +296,7 @@ int get_peer_lists(Node *all_peers) {
     return total_peers;
 }
 
+// Choose neighbors using a power-law inspired distribution
 void select_neighbors_powerlaw(Node *peers, int peer_count) {
     if (peer_count == 0) {
         log_msg("No peers available for connection");
@@ -325,6 +335,7 @@ void select_neighbors_powerlaw(Node *peers, int peer_count) {
     }
 }
 
+// Create outgoing connection to a selected peer
 int connect_to_peer(const char *ip, int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) return 0;
@@ -375,6 +386,7 @@ int connect_to_peer(const char *ip, int port) {
     return 1;
 }
 
+// Find neighbor index in the local neighbor table
 int find_neighbor_index(const char *ip, int port) {
     for (int i = 0; i < neighbor_count; i++) {
         if (strcmp(neighbors[i].ip, ip) == 0 && neighbors[i].port == port) {
@@ -384,6 +396,7 @@ int find_neighbor_index(const char *ip, int port) {
     return -1;
 }
 
+// Receive and dispatch messages on one peer socket
 void *listen_to_peer(void *arg) {
     int sock = *(int*)arg;
     free(arg);
@@ -415,6 +428,7 @@ void *listen_to_peer(void *arg) {
     return NULL;
 }
 
+// Process one incoming gossip message with de-duplication
 void handle_gossip(const char *data, const char *sender_ip) {
     // Format: GOSSIP:<timestamp>:<ip>:<msg#>
     char message[256];
@@ -451,6 +465,7 @@ void handle_gossip(const char *data, const char *sender_ip) {
     }
 }
 
+// Forward gossip to neighbors except the sender
 void forward_gossip(const char *gossip_msg, const char *exclude_ip) {
     pthread_mutex_lock(&neighbor_lock);
     for (int i = 0; i < neighbor_count; i++) {
@@ -461,6 +476,7 @@ void forward_gossip(const char *gossip_msg, const char *exclude_ip) {
     pthread_mutex_unlock(&neighbor_lock);
 }
 
+// Track suspicion reports and trigger peer-level consensus
 void handle_suspect(const char *data) {
     // Format: SUSPECT:<dead_ip>:<dead_port>:<reporter_ip>
     char dead_ip[16], reporter_ip[16];
@@ -530,6 +546,7 @@ void handle_suspect(const char *data) {
     pthread_mutex_unlock(&liveness_lock);
 }
 
+// Broadcast local suspicion to neighbors
 void broadcast_suspicion(const char *dead_ip, int dead_port) {
     char suspect_msg[256];
     snprintf(suspect_msg, sizeof(suspect_msg), "SUSPECT:%s:%d:%s", 
@@ -592,6 +609,7 @@ void broadcast_suspicion(const char *dead_ip, int dead_port) {
     pthread_mutex_unlock(&liveness_lock);
 }
 
+// Report confirmed dead peer to all registered seeds
 void report_dead_to_seeds(const char *dead_ip, int dead_port) {
     char timestamp[64];
     get_timestamp(timestamp);
@@ -615,12 +633,14 @@ void report_dead_to_seeds(const char *dead_ip, int dead_port) {
     }
 }
 
+// Check host liveness using system ping
 int ping_peer(const char *ip) {
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "ping -c 1 -W 1 %s > /dev/null 2>&1", ip);
     return (system(cmd) == 0);
 }
 
+// Periodically verify neighbor liveness and suspect failures
 void *check_liveness(void *arg) {
     sleep(5); // Wait for connections
     
@@ -689,6 +709,7 @@ void *check_liveness(void *arg) {
     return NULL;
 }
 
+// Periodically generate and publish gossip messages
 void *generate_gossip(void *arg) {
     sleep(2); // Wait for network to stabilize
     
@@ -738,6 +759,7 @@ void *generate_gossip(void *arg) {
     return NULL;
 }
 
+// Handle first message from an incoming connection
 void *handle_incoming(void *arg) {
     int client_sock = *(int*)arg;
     free(arg);
@@ -781,6 +803,7 @@ void *handle_incoming(void *arg) {
     return NULL;
 }
 
+// Start peer TCP server and accept incoming connections
 void *peer_listener(void *arg) {
     int server_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (server_sock < 0) {
@@ -831,6 +854,7 @@ void *peer_listener(void *arg) {
     return NULL;
 }
 
+// Entry point: register, connect, then run gossip + liveness loops
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <port>\n", argv[0]);
